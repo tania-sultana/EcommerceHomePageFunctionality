@@ -1,0 +1,28 @@
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #f8f9fa;
+}
+
+.product-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.product-thumb-preview {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+}
+
+.product-thumb-show {
+    width: 100%;
+    max-width: 400px;
+    object-fit: cover;
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+}
