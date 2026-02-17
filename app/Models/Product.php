@@ -13,6 +13,8 @@ class Product extends Model
 
     protected $guarded = ['id'];
 
+    protected $appends = ['thumbnail'];
+
     public function media()
     {
         return $this->belongsTo(Media::class);

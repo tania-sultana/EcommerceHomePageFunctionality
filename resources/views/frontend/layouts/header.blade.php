@@ -11,30 +11,32 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto">
                 <li class="nav-item">
-                    <a class="nav-link px-3 {{ request()->routeIs('products.index') ? 'active fw-bold' : '' }}" href="{{ route('products.index') }}">Admin</a>
+                    <a class="nav-link px-3 {{ request()->routeIs('products.index') ? 'active fw-bold' : '' }}"
+                        href="{{ route('products.index') }}">Admin</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link px-3 {{ request()->routeIs('index') ? 'active fw-bold' : '' }}" href="{{ route('index') }}">Home</a>
+                    {{-- Home Link --}}
+                    <a class="nav-link px-3 {{ request()->routeIs('index') ? 'active fw-bold' : '' }}"
+                        href="{{ route('index') }}">Home</a>
                 </li>
+
                 <li class="nav-item">
-                    {{-- Order link-ti ekhane update kora hoyeche --}}
-                    <a class="nav-link px-3 {{ request()->routeIs('order.index') ? 'active fw-bold' : '' }}" href="{{ route('order.index') }}">Orders</a>
+                    {{-- Order History Trigger --}}
+                    <a class="nav-link px-3 trigger-orders" href="javascript:void(0)">Orders</a>
                 </li>
             </ul>
 
-            <div class="d-flex align-items-center">
-                <a href="{{ route('wishlist.index') }}" class="position-relative me-3 text-decoration-none">
+            <div class="d-flex align-items-center gap-4">
+                <a href="javascript:void(0)" class="trigger-wishlist position-relative  text-decoration-none">
                     <i class="fa-regular fa-heart fs-4 text-dark"></i>
-                    <span class="position-absolute badge rounded-pill bg-danger count-badge">
-                        {{ \App\Models\Wishlist::count() }}
+                    <span class="position-absolute badge rounded-pill bg-danger count-badge wishlist-count-nav">
+                        0
                     </span>
                 </a>
 
-                <a href="{{ route('cart.index') }}" class="position-relative me-3 text-decoration-none">
+                <a href="javascript:void(0)" class="trigger-cart position-relative  text-decoration-none">
                     <i class="fa-solid fa-cart-shopping fs-4 text-dark"></i>
-                    <span class="position-absolute badge rounded-pill bg-primary count-badge">
-                        {{ count((array) session('cart')) }}
-                    </span>
+                    <span class="position-absolute badge rounded-pill bg-primary count-badge cart-count-nav">0</span>
                 </a>
             </div>
         </div>

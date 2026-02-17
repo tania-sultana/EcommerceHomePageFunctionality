@@ -1,131 +1,99 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Http\Requests\OrderStoreRequest;
 use App\Models\Product;
-use App\Models\Wishlist;
-use App\Repositories\OrderRepository;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function index()
-    {
-        $products = Product::latest()->get();
-        $wishlistIds = Wishlist::pluck('product_id')->toArray();
-
-        return view('frontend.home.index', compact('products', 'wishlistIds'));
+    public function index() {
+        return view('frontend.home.index');
     }
 
-    public function show(Product $product)
-    {
-        $wishlistIds = Wishlist::pluck('product_id')->toArray();
+    public function getProducts() {
 
-        return view('frontend.home.details', compact('product', 'wishlistIds'));
+        $products = Product::with('media')->latest()->get();
+
+        return response()->json([
+            'products' => $products,
+
+            'wishlistIds' => [],
+            'cartIds' => [],
+            'wishlistCount' => 0,
+            'cartCount' => 0
+        ]);
     }
 
-    public function wishlist()
-    {
-        $wishlistItems = Wishlist::with('product.media')->latest()->get();
+    public function show($id) {
+        $product = Product::with('media')->find($id);
 
-        return view('frontend.home.wishlist', compact('wishlistItems'));
-    }
-
-    public function toggleWishlist(Product $product)
-    {
-        $wishlist = Wishlist::where('product_id', $product->id)->first();
-
-        if ($wishlist) {
-            $wishlist->delete();
-
-            return back()->with('success', 'Removed from Wishlist');
+        if (!$product) {
+            return response()->json(['status' => 'error', 'message' => 'Product not found'], 404);
         }
 
-        Wishlist::create(['product_id' => $product->id]);
+        $html = view('frontend.partials.quick_view', compact('product'))->render();
 
-        return back()->with('success', 'Added to Wishlist');
+        return response()->json([
+            'status' => 'success',
+            'html' => $html
+        ]);
     }
 
-    public function cart()
+    public function getWishlistContent(Request $request)
     {
-        $cart = session()->get('cart', []);
+        $ids = $request->ids ?? [];
 
-        return view('frontend.home.cart', compact('cart'));
+        $products = Product::with('media')->whereIn('id', $ids)->get();
+
+        $html = view('frontend.partials.wishlist_drawer_items', compact('products'))->render();
+
+        return response()->json([
+            'status' => 'success',
+            'html' => $html
+        ]);
     }
 
-    public function addToCart(Product $product, Request $request)
+    public function toggleWishlist($id)
     {
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$product->id])) {
-            return back()->with('info', 'Product already in cart. You can change quantity from the cart page.');
-        }
-
-        $cart[$product->id] = [
-            'name' => $product->name,
-            'quantity' => 1,
-            'price' => $product->price,
-            'thumbnail' => $product->thumbnail,
-        ];
-
-        session()->put('cart', $cart);
-
-        return back()->with('success', 'Product added to cart!');
+        return response()->json(['status' => 'ok']);
     }
 
-    public function updateCart(Request $request, $id)
+     public function addToCart($id)
     {
-        if ($id && $request->quantity) {
-            $cart = session()->get('cart');
-            $cart[$id]['quantity'] = $request->quantity;
-            session()->put('cart', $cart);
-
-            return back()->with('success', 'Cart updated!');
-        }
+        return response()->json(['status' => 'ok']);
     }
 
-    public function removeCart($id)
+    public function getCartContent(Request $request)
     {
-        if ($id) {
-            $cart = session()->get('cart');
-            if (isset($cart[$id])) {
-                unset($cart[$id]);
-                session()->put('cart', $cart);
-            }
+        $cartItems = $request->items ?? [];
+        $ids = collect($cartItems)->pluck('id')->toArray();
 
-            return back()->with('success', 'Product removed!');
-        }
+        $products = Product::whereIn('id', $ids)->get()->map(function($product) use ($cartItems) {
+            $item = collect($cartItems)->firstWhere('id', $product->id);
+            $product->cart_qty = $item['qty'] ?? 1;
+            return $product;
+        });
+
+        $html = view('frontend.partials.cart_drawer_items', compact('products'))->render();
+
+        return response()->json([
+            'status' => 'success',
+            'html' => $html
+        ]);
     }
 
-    public function checkout(Request $request)
-    {
-        $product = Product::findOrFail($request->product_id);
+   public function getCheckoutDetails(Request $request)
+{
+    $products = $request->input('items', []);
 
-        $quantity = $request->qty ?? 1;
+    return response()->json([
+        'status' => 'success',
+        'html'   => view('frontend.partials.checkout_list', compact('products'))->render()
+    ]);
+}
 
-        return view('frontend.home.checkout', compact('product', 'quantity'));
-    }
-
-    public function placeOrder(OrderStoreRequest $request)
-    {
-        $cart = session()->get('cart');
-
-        if (! $cart) {
-            return to_route('index')->with('error', 'Your cart is empty!');
-        }
-
-        OrderRepository::storeByRequest($request, $cart);
-
-        session()->forget('cart');
-
-        return to_route('index')->with('success', 'Your order has been placed successfully!');
-    }
-
-    public function orders()
-    {
-        $orders = OrderRepository::query()->latest()->get();
-
-        return view('frontend.home.orders', compact('orders'));
-    }
+public function getOrdersContent()
+{
+    return view('frontend.partials.order_history');
+}
 }

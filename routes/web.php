@@ -19,21 +19,20 @@ Route::controller(ProductController::class)->name('products.')->group(function (
 });
 
 Route::controller(HomeController::class)->group(function () {
-    Route::get('/product/index', 'index')->name('index');
-    Route::get('/product/{product}', 'show')->name('product.details');
 
-    // Wishlist (Like) System
-    Route::get('/wishlist', 'wishlist')->name('wishlist.index');
-    Route::post('/wishlist/toggle/{product}', 'toggleWishlist')->name('wishlist.toggle');
+    Route::get('/home', 'index')->name('index');
 
-    // Cart System
-    Route::get('/cart', 'cart')->name('cart.index');
-    Route::post('/cart/add/{product}', 'addToCart')->name('cart.add');
-    Route::post('/cart/update/{id}', 'updateCart')->name('cart.update');
-    Route::delete('/cart/remove/{id}', 'removeCart')->name('cart.remove');
+    // Data API (Product Load)
+    Route::get('/api/products', 'getProducts')->name('api.products');
 
-    // Checkout & Order
-    Route::get('/checkout', 'checkout')->name('checkout');
-    Route::post('/order/place', 'placeOrder')->name('order.store');
-    Route::get('/orders', 'orders')->name('order.index');
+    // Action API
+    Route::post('/cart/add/{id}', 'addToCart')->name('cart.add');
+    Route::post('/wishlist/toggle/{id}', 'toggleWishlist')->name('wishlist.toggle');
+    Route::get('/product-details/{id}', 'show')->name('product.details');
+
+    // Drawer/Content APIs
+    Route::get('/wishlist-content', 'getWishlistContent')->name('wishlist.index');
+    Route::get('/cart-content', 'getCartContent')->name('cart.index');
+    Route::post('/checkout-details', 'getCheckoutDetails')->name('checkout.details');
+    Route::get('/order-history', 'getOrdersContent')->name('order.index');
 });
