@@ -25,7 +25,7 @@
         @yield('content')
     </main>
 
-
+    {{-- details modal --}}
     <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg position-relative">
@@ -38,35 +38,42 @@
         </div>
     </div>
 
+    {{-- cart offcanvas --}}
     <div class="offcanvas offcanvas-end" tabindex="-1" id="cartDrawer" aria-labelledby="cartDrawerLabel">
-        <div class="offcanvas-header border-bottom bg-light">
-            <h5 class="fw-bold mb-0" id="cartDrawerLabel">Your Shopping Cart</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
+
         <div class="offcanvas-body p-0" id="cart-drawer-content">
         </div>
     </div>
 
+    {{-- wishlist offcanvas --}}
     <div class="offcanvas offcanvas-end" tabindex="-1" id="wishlistDrawer">
-        <div class="offcanvas-header border-bottom bg-light">
-            <h5 class="fw-bold mb-0">Your Wishlist</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
+
         <div class="offcanvas-body p-0" id="wishlist-drawer-content">
         </div>
     </div>
-
-    <div class="offcanvas offcanvas-end border-0 shadow-lg" tabindex="-1" id="orderHistoryDrawer" style="width: 400px;">
-    <div class="offcanvas-header bg-dark text-white py-4">
-        <h5 class="offcanvas-title fw-bold">
-            <i class="fa-solid fa-clock-rotate-left me-2"></i>Order History
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
-    </div>
-    <div class="offcanvas-body p-0" id="order-history-drawer-content">
+    {{-- order history --}}
+    <div class="offcanvas offcanvas-end border-0 shadow-lg" tabindex="-1" id="orderHistoryDrawer"
+        style="width: 400px;">
+        <div class="offcanvas-header bg-dark text-white py-4">
+            <h5 class="offcanvas-title fw-bold">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>Order History
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
         </div>
+        <div class="offcanvas-body p-0" id="order-history-drawer-content">
+        </div>
+    </div>
+
+  
+   {{-- order details modal --}}
+<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" id="orderDetailModalContent">
+            </div>
+    </div>
 </div>
 
+    {{-- checkout offcanvas --}}
     <div class="offcanvas offcanvas-end border-0 shadow-lg" tabindex="-1" id="checkoutDrawer" style="width: 480px;">
         <div class="offcanvas-header bg-primary text-white py-4">
             <h5 class="offcanvas-title fw-bold">

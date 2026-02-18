@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Product;
@@ -6,11 +7,13 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function index() {
+    public function index()
+    {
         return view('frontend.home.index');
     }
 
-    public function getProducts() {
+    public function getProducts()
+    {
 
         $products = Product::with('media')->latest()->get();
 
@@ -20,14 +23,15 @@ class HomeController extends Controller
             'wishlistIds' => [],
             'cartIds' => [],
             'wishlistCount' => 0,
-            'cartCount' => 0
+            'cartCount' => 0,
         ]);
     }
 
-    public function show($id) {
+    public function show($id)
+    {
         $product = Product::with('media')->find($id);
 
-        if (!$product) {
+        if (! $product) {
             return response()->json(['status' => 'error', 'message' => 'Product not found'], 404);
         }
 
@@ -35,7 +39,7 @@ class HomeController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'html' => $html
+            'html' => $html,
         ]);
     }
 
@@ -49,7 +53,7 @@ class HomeController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'html' => $html
+            'html' => $html,
         ]);
     }
 
@@ -58,7 +62,7 @@ class HomeController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
-     public function addToCart($id)
+    public function addToCart($id)
     {
         return response()->json(['status' => 'ok']);
     }
@@ -68,9 +72,10 @@ class HomeController extends Controller
         $cartItems = $request->items ?? [];
         $ids = collect($cartItems)->pluck('id')->toArray();
 
-        $products = Product::whereIn('id', $ids)->get()->map(function($product) use ($cartItems) {
+        $products = Product::whereIn('id', $ids)->get()->map(function ($product) use ($cartItems) {
             $item = collect($cartItems)->firstWhere('id', $product->id);
             $product->cart_qty = $item['qty'] ?? 1;
+
             return $product;
         });
 
@@ -78,22 +83,43 @@ class HomeController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'html' => $html
+            'html' => $html,
         ]);
     }
 
-   public function getCheckoutDetails(Request $request)
-{
-    $products = $request->input('items', []);
+    public function getCartItemDetails(Request $request)
+    {
+        if (! $request->item) {
+            return response()->json(['status' => 'error'], 400);
+        }
 
-    return response()->json([
-        'status' => 'success',
-        'html'   => view('frontend.partials.checkout_list', compact('products'))->render()
-    ]);
-}
+        $product = Product::with('media')->find($request->item['id']);
 
-public function getOrdersContent()
-{
-    return view('frontend.partials.order_history');
-}
+        if (! $product) {
+            return response()->json(['status' => 'error'], 404);
+        }
+
+        $html = view('frontend.partials.cart_item_details', compact('product'))->render();
+
+        return response()->json([
+            'status' => 'success',
+            'html' => $html,
+            'product' => $product,
+        ]);
+    }
+
+    public function getCheckoutDetails(Request $request)
+    {
+        $products = $request->input('items', []);
+
+        return response()->json([
+            'status' => 'success',
+            'html' => view('frontend.partials.checkout_list', compact('products'))->render(),
+        ]);
+    }
+
+    public function getOrdersContent()
+    {
+        return view('frontend.partials.order_history');
+    }
 }

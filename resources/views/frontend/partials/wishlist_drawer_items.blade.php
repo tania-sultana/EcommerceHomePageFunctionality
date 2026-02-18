@@ -4,17 +4,25 @@
 </div>
 
 <div class="offcanvas-body">
-    @if(count($products) > 0)
-        @foreach($products as $product)
+    @if (count($products) > 0)
+        @foreach ($products as $product)
             <div class="d-flex align-items-center mb-3 p-2 border rounded shadow-sm bg-white">
-                <img src="{{ $product->thumbnail }}" width="60" height="60" class="rounded me-3" style="object-fit: cover;">
+                <img src="{{ $product->thumbnail }}" width="60" height="60" class="rounded me-3"
+                    style="object-fit: cover;">
                 <div class="flex-grow-1">
                     <h6 class="mb-0 small fw-bold">{{ $product->name }}</h6>
                     <span class="text-primary fw-bold small">৳{{ number_format($product->price) }}</span>
                 </div>
-                <button class="btn btn-sm text-danger wishlist-toggle-btn" data-id="{{ $product->id }}">
-                    <i class="fa-solid fa-trash-can"></i>
-                </button>
+
+                <div class="d-flex gap-2">
+                    <button class="btn btn-link p-0 border-0 quick-view" data-id="{{ $product->id }}">
+                        <i class="fa-solid fa-eye "></i>
+                    </button>
+
+                    <button class="btn btn-sm text-danger wishlist-toggle-btn" data-id="{{ $product->id }}">
+                        <i class="fa-solid fa-trash-can "></i>
+                    </button>
+                </div>
             </div>
         @endforeach
     @else

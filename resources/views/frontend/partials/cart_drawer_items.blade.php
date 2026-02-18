@@ -1,3 +1,7 @@
+<div class="offcanvas-header border-bottom bg-light">
+    <h5 class="fw-bold mb-0">Your Shopping Cart ({{ count($products) }})</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+</div>
 <div class="offcanvas-body d-flex flex-column p-0">
     @php
         $subtotal = 0;
@@ -36,10 +40,19 @@
                         <div class="d-flex justify-content-between">
                             <h6 class="mb-1 fw-bold text-dark small text-truncate" style="max-width: 140px;">
                                 {{ $product->name }}</h6>
-                            <button class="btn btn-link text-danger p-0 border-0 remove-cart-item"
-                                data-id="{{ $product->id }}">
-                                <i class="fa-solid fa-trash-can shadow-sm p-1 rounded bg-light"></i>
-                            </button>
+
+                            <div class=" d-flex gap-3">
+                                <button class="btn btn-link text-primary p-0 border-0 view-cart-details"
+    data-id="{{ $product->id }}"
+    title="View Cart Details">
+    <i class="fa-solid fa-eye shadow-sm p-1 rounded bg-light"></i>
+</button>
+
+                                <button class="btn btn-link text-danger p-0 border-0 remove-cart-item"
+                                    data-id="{{ $product->id }}">
+                                    <i class="fa-solid fa-trash-can shadow-sm p-1 rounded bg-light"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="text-primary fw-bold mb-2 small">৳{{ number_format($product->price) }}</div>

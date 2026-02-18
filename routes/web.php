@@ -35,4 +35,5 @@ Route::controller(HomeController::class)->group(function () {
     Route::get('/cart-content', 'getCartContent')->name('cart.index');
     Route::post('/checkout-details', 'getCheckoutDetails')->name('checkout.details');
     Route::get('/order-history', 'getOrdersContent')->name('order.index');
+    Route::post('/cart-item-details', 'getCartItemDetails')->name('cart.item.details');
 });
