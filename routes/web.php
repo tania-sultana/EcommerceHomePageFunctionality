@@ -22,18 +22,5 @@ Route::controller(HomeController::class)->group(function () {
 
     Route::get('/home', 'index')->name('index');
 
-    // Data API (Product Load)
-    Route::get('/api/products', 'getProducts')->name('api.products');
-
-    // Action API
-    Route::post('/cart/add/{id}', 'addToCart')->name('cart.add');
-    Route::post('/wishlist/toggle/{id}', 'toggleWishlist')->name('wishlist.toggle');
-    Route::get('/product-details/{id}', 'show')->name('product.details');
-
-    // Drawer/Content APIs
-    Route::get('/wishlist-content', 'getWishlistContent')->name('wishlist.index');
-    Route::get('/cart-content', 'getCartContent')->name('cart.index');
-    Route::post('/checkout-details', 'getCheckoutDetails')->name('checkout.details');
-    Route::get('/order-history', 'getOrdersContent')->name('order.index');
-    Route::post('/cart-item-details', 'getCartItemDetails')->name('cart.item.details');
+    
 });
