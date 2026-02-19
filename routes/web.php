@@ -19,7 +19,9 @@ Route::controller(ProductController::class)->name('products.')->group(function (
 });
 
 Route::controller(HomeController::class)->group(function () {
-
     Route::get('/home', 'index')->name('index');
     Route::get('/product/{product}', 'show');
+    Route::post('/product-toggle/{product}', 'toggle')->name('product.toggle');
+    Route::post('/cart-sync/{product}', 'cartSync');
+    Route::post('/checkout', 'checkout')->name('checkout');
 });

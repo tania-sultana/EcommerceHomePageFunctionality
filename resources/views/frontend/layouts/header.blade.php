@@ -27,9 +27,16 @@
             </ul>
 
             <div class="d-flex align-items-center gap-4">
-                <a href="javascript:void(0)" class="trigger-wishlist position-relative text-decoration-none">
+                {{-- <a href="javascript:void(0)" class="trigger-wishlist position-relative text-decoration-none">
                     <i class="fa-regular fa-heart fs-4 text-dark"></i>
                     <span class="position-absolute badge rounded-pill bg-danger count-badge wishlist-count-nav">
+                        0
+                    </span>
+                </a> --}}
+                <a href="javascript:void(0)" class="trigger-wishlist position-relative text-decoration-none"
+                    data-bs-toggle="offcanvas" data-bs-target="#wishlistOffcanvas">
+                    <i class="fa-regular fa-heart fs-4 text-dark"></i>
+                    <span class="position-absolute badge rounded-pill bg-danger count-badge wishlist-count-nav" id="wishlist-count">
                         0
                     </span>
                 </a>
