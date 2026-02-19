@@ -9,16 +9,24 @@ use Illuminate\Http\Request;
 class HomeController extends Controller
 {
     public function index(Request $request)
-{
-    $products = Product::latest()->get();
+    {
+        $products = Product::latest()->get();
 
-    if ($request->ajax()) {
-        return response()->json([
-            'message' => 'Products fetched successfully',
-            'data' => ProductResource::collection($products)
-        ]);
+        if ($request->ajax()) {
+            return $this->json(
+                'Products fetched successfully',
+                ProductResource::collection($products)
+            );
+        }
+
+        return view('frontend.home.index');
     }
 
-    return view('frontend.home.index');
-}
+    public function show(Product $product)
+    {
+        return $this->json(
+            'Product fetched successfully',
+            new ProductResource($product)
+        );
+    }
 }

@@ -21,6 +21,5 @@ Route::controller(ProductController::class)->name('products.')->group(function (
 Route::controller(HomeController::class)->group(function () {
 
     Route::get('/home', 'index')->name('index');
-
-
+    Route::get('/product/{product}', 'show');
 });
