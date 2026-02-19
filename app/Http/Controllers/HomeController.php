@@ -8,13 +8,17 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function index()
-    {
-        $products = Product::latest()->get();
+    public function index(Request $request)
+{
+    $products = Product::latest()->get();
 
-        return $this->json(
-            'Products fetched successfully',
-            ProductResource::collection($products)
-        );
+    if ($request->ajax()) {
+        return response()->json([
+            'message' => 'Products fetched successfully',
+            'data' => ProductResource::collection($products)
+        ]);
     }
+
+    return view('frontend.home.index');
+}
 }

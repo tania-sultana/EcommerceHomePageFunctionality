@@ -22,5 +22,5 @@ Route::controller(HomeController::class)->group(function () {
 
     Route::get('/home', 'index')->name('index');
 
-    
+
 });
