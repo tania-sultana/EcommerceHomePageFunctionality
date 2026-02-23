@@ -24,4 +24,7 @@ Route::controller(HomeController::class)->group(function () {
     Route::post('/product-toggle/{product}', 'toggle')->name('product.toggle');
     Route::post('/cart-sync/{product}', 'cartSync');
     Route::post('/checkout', 'checkout')->name('checkout');
+    Route::get('/orders-list', 'orderList')->name('orders.list');
+    Route::get('/order-details/{id}', 'orderDetails')->name('orders.details');
+    Route::delete('/order-delete/{id}','orderDelete')->name('orders.delete');
 });

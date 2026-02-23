@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\OrderResource;
 use App\Http\Resources\ProductResource;
 use App\Http\Resources\WishListResource;
+use App\Models\Order;
 use App\Models\Product;
 use App\Models\Wishlist;
 use Illuminate\Http\Request;
@@ -57,5 +59,37 @@ class HomeController extends Controller
             'Order placed successfully!',
             $request->all()
         );
+    }
+    
+    public function orderList()
+    {
+        $orders = Order::latest()->get();
+
+        return $this->json(
+            'Orders fetched successfully',
+            OrderResource::collection($orders)
+        );
+    }
+
+    public function orderDetails($id)
+    {
+        $order = Order::with('items.product')->find($id);
+
+        if (!$order) {
+            return response()->json(['message' => 'Order not found'], 404);
+        }
+
+        return $this->json(
+            'Order details fetched successfully',
+            new OrderResource($order)
+        );
+    }
+    public function orderDelete($id)
+    {
+        $order = Order::find($id);
+        if ($order) {
+            $order->delete();
+            return response()->json(['message' => 'Deleted']);
+        }
     }
 }

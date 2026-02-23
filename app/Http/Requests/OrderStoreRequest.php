@@ -25,6 +25,13 @@ class OrderStoreRequest extends FormRequest
             'name' => 'required|string|max:100',
             'phone' => 'required|string|max:20',
             'address' => 'required|string',
+            'subtotal' => 'required|numeric',
+            'delivery_charge' => 'required|numeric',
+            'total_amount' => 'required|numeric',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'items.*.price' => 'required|numeric',
         ];
     }
 }

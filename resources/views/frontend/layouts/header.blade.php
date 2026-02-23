@@ -20,8 +20,9 @@
                 </li>
 
                 <li class="nav-item">
-                    {{-- Order History Trigger --}}
-                    <a class="nav-link px-3 trigger-orders" href="javascript:void(0)">Orders</a>
+                    <a class="nav-link px-3 trigger-orders" href="javascript:void(0)" data-bs-toggle="offcanvas" data-bs-target="#orderHistoryOffcanvas">
+                        Orders
+                    </a>
                 </li>
             </ul>
 
@@ -29,7 +30,8 @@
                 <a href="javascript:void(0)" class="trigger-wishlist position-relative text-decoration-none"
                     data-bs-toggle="offcanvas" data-bs-target="#wishlistOffcanvas">
                     <i class="fa-regular fa-heart fs-4 text-dark"></i>
-                    <span class="position-absolute badge rounded-pill bg-danger count-badge wishlist-count-nav" id="wishlist-count">
+                    <span class="position-absolute badge rounded-pill bg-danger count-badge wishlist-count-nav"
+                        id="wishlist-count">
                         0
                     </span>
                 </a>

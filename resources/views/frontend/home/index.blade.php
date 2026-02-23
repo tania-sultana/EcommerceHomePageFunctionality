@@ -29,19 +29,10 @@
         </div>
     </div>
 
-    {{-- ------------ Cart Offcanvas Section ------------ --}}
-    <div class="modal fade" id="cartItemQuickViewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content rounded-5 border-0 shadow-lg">
-                <div class="modal-body p-0" id="cart-quickview-content">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Dynamic UI Containers --}}
+    {{-- ------------ Dynamic UI Containers ------------ --}}
     <div id="cart-ui-wrapper"></div>
     <div id="checkout-ui-wrapper"></div>
+    <div id="order-ui-wrapper"></div> {{-- Order container added --}}
 @endsection
 
 @push('scripts')
@@ -51,12 +42,20 @@
         $(document).ready(function() {
             renderCartStructure();
             renderCheckoutStructure();
+            renderOrderStructure(); // Initialization
             loadHomeProducts();
 
             $(document).on('click', '.trigger-cart', function(e) {
                 e.preventDefault();
                 updateCartUI();
                 new bootstrap.Offcanvas(document.getElementById('cartOffcanvas')).show();
+            });
+
+            // Trigger Orders from Nav
+            $(document).on('click', '.trigger-orders', function(e) {
+                e.preventDefault();
+                fetchOrderHistory();
+                new bootstrap.Offcanvas(document.getElementById('orderHistoryOffcanvas')).show();
             });
         });
 
@@ -294,8 +293,7 @@
             <div class="modal fade" id="cartItemQuickViewModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-lg">
                     <div class="modal-content rounded-5 border-0 shadow-lg">
-                        <div class="modal-body p-0" id="cart-quickview-content">
-                            </div>
+                        <div class="modal-body p-0" id="cart-quickview-content"></div>
                     </div>
                 </div>
             </div>`;
@@ -317,6 +315,10 @@
                 localStorage.setItem('my_cart', JSON.stringify(cart));
                 renderProductGrid();
                 updateCartUI();
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Added to cart'
+                });
             }
         }
 
@@ -332,10 +334,25 @@
         }
 
         function removeFromCart(id) {
-            let cart = getCart().filter(i => i.id !== id);
-            localStorage.setItem('my_cart', JSON.stringify(cart));
-            updateCartUI();
-            renderProductGrid();
+            Swal.fire({
+                title: "Are you sure?",
+                text: "Remove this item from cart?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                confirmButtonText: "Yes, delete!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    let cart = getCart().filter(i => i.id !== id);
+                    localStorage.setItem('my_cart', JSON.stringify(cart));
+                    updateCartUI();
+                    renderProductGrid();
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Removed from cart'
+                    });
+                }
+            });
         }
 
         function updateCartUI() {
@@ -380,9 +397,7 @@
                             <div class="text-end">
                                 <div class="d-flex gap-1 mb-3 justify-content-end">
                                     <button class="btn btn-sm btn-light text-primary border rounded-circle" onclick="viewCartItemQuickly(${p.id})" style="width:32px; height:32px;"><i class="fa-solid fa-eye" ></i></button>
-
-                                    <button class="btn btn-sm btn-light text-danger border rounded-circle " onclick="removeFromCart(${p.id})" style="width:32px; height:32px;"><i class="fa-solid fa-trash-can"></i></button>
-
+                                    <button class="btn btn-sm btn-light text-danger border rounded-circle" onclick="removeFromCart(${p.id})" style="width:32px; height:32px;"><i class="fa-solid fa-trash-can"></i></button>
                                 </div>
                                 <h6 class="fw-bold mb-0">৳ ${totalItemPrice}</h6>
                             </div>
@@ -425,34 +440,29 @@
             if (p && item) {
                 let totalItemPrice = p.price * item.qty;
                 let html = `
-            <div class="row g-0 p-4 position-relative">
-                <button type="button" class="btn-close position-absolute top-0 end-0 m-3 shadow-none border rounded-circle p-2" data-bs-dismiss="modal" style="z-index: 10; font-size: 12px;"></button>
-
-                <div class="col-md-5 d-flex align-items-center justify-content-center p-3">
-                    <img src="${p.thumbnail}" class="img-fluid rounded-4 shadow-sm" style="max-height: 280px; object-fit: contain;">
-                </div>
-
-                <div class="col-md-7 p-4">
-                    <h2 class="fw-bold text-dark mb-1">${p.name}</h2>
-                    <h3 class="text-primary fw-bold mb-4">৳ ${p.price}</h3>
-
-                    <div class="p-3 bg-light rounded-4 border mb-4" style="background: #f8f9fa !important;">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted fw-bold">Quantity:</span>
-                            <span class="fs-5 fw-bolder text-dark">${item.qty}</span>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center border-top pt-2">
-                            <span class="fw-bold text-dark">Subtotal:</span>
-                            <span class="fs-4 fw-bolder text-success">৳ ${totalItemPrice}</span>
-                        </div>
+                <div class="row g-0 p-4 position-relative">
+                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3 shadow-none border rounded-circle p-2" data-bs-dismiss="modal" style="z-index: 10; font-size: 12px;"></button>
+                    <div class="col-md-5 d-flex align-items-center justify-content-center p-3">
+                        <img src="${p.thumbnail}" class="img-fluid rounded-4 shadow-sm" style="max-height: 280px; object-fit: contain;">
                     </div>
-
-                    <button class="btn btn-success w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm disabled" style="background-color: #67b295; border:none; opacity: 1;">
-                        <i class="fa-solid fa-circle-check me-2"></i> Already In Cart
-                    </button>
-                </div>
-            </div>`;
-
+                    <div class="col-md-7 p-4">
+                        <h2 class="fw-bold text-dark mb-1">${p.name}</h2>
+                        <h3 class="text-primary fw-bold mb-4">৳ ${p.price}</h3>
+                        <div class="p-3 bg-light rounded-4 border mb-4" style="background: #f8f9fa !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-muted fw-bold">Quantity:</span>
+                                <span class="fs-5 fw-bolder text-dark">${item.qty}</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                                <span class="fw-bold text-dark">Subtotal:</span>
+                                <span class="fs-4 fw-bolder text-success">৳ ${totalItemPrice}</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-success w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm disabled" style="background-color: #67b295; border:none; opacity: 1;">
+                            <i class="fa-solid fa-circle-check me-2"></i> Already In Cart
+                        </button>
+                    </div>
+                </div>`;
                 $('#cart-quickview-content').html(html);
                 $('#cartItemQuickViewModal').modal('show');
             }
@@ -502,12 +512,158 @@
             e.preventDefault();
             let data = $(this).serialize() + '&cart=' + JSON.stringify(getCart()) + '&_token={{ csrf_token() }}';
             $.post("{{ route('checkout') }}", data, function(res) {
-                alert('Order Successful!');
+                Toast.fire({
+                    icon: 'success',
+                    title: 'Order Successful!'
+                });
                 localStorage.removeItem('my_cart');
                 renderProductGrid();
                 updateCartUI();
                 bootstrap.Offcanvas.getInstance(document.getElementById('checkoutOffcanvas')).hide();
             });
         });
+
+        // ==========================================
+        // 6. ORDER HISTORY SECTION
+        // ==========================================
+        function renderOrderStructure() {
+            let html = `
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="orderHistoryOffcanvas" style="width: 400px; border-radius: 20px 0 0 20px;">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Order History</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-3" id="order-list-container" style="background: #f8f9fa;"></div>
+    </div>
+
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-5 border-0 shadow">
+                <div class="modal-header border-bottom px-4">
+                    <h5 class="fw-bold mb-0">Order Details</h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4" id="order-details-content"></div>
+            </div>
+        </div>
+    </div>`;
+            $('#order-ui-wrapper').html(html);
+        }
+
+        function fetchOrderHistory() {
+            let container = $('#order-list-container');
+            container.html(
+                '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
+
+            $.get("{{ route('orders.list') }}", function(res) {
+                if (!res.data || res.data.length === 0) {
+                    container.html('<div class="text-center py-5 text-muted">No orders found!</div>');
+                    return;
+                }
+
+                let html = '';
+                res.data.forEach(order => {
+                    html += `
+            <div class="p-3 mb-3 bg-white border rounded-4 shadow-sm" id="order-row-${order.id}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold text-primary mb-0">ORD-${order.order_number}</h6>
+                    <span class="badge bg-success-subtle text-success rounded-pill px-3">${order.status}</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="small text-muted" style="font-size: 11px;">${order.created_at}</div>
+                        <div class="fw-bold text-dark">৳ ${order.total_amount}</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-light border rounded-circle" onclick="viewOrderDetails(${order.id})" style="width:35px; height:35px;">
+                            <i class="fa-solid fa-eye text-primary"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light border rounded-circle" onclick="deleteOrder(${order.id})" style="width:35px; height:35px;">
+                            <i class="fa-solid fa-trash-can text-danger"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>`;
+                });
+                container.html(html);
+            });
+        }
+
+        function viewOrderDetails(orderId) {
+            $('#order-details-content').html(
+                '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>');
+            $('#orderDetailsModal').modal('show');
+
+            $.get(`/order-details/${orderId}`, function(res) {
+                let order = res.data;
+                let itemsHtml = '';
+
+                order.items.forEach(item => {
+                    // Price string থেকে কমা সরিয়ে নম্বর এ কনভার্ট করা
+                    let unitPrice = parseFloat(String(item.price).replace(/,/g, '')) || 0;
+                    let quantity = parseInt(item.qty) || 0;
+                    let itemTotal = unitPrice * quantity;
+
+                    itemsHtml += `
+            <div class="d-flex align-items-center gap-3 mb-2 pb-2 border-bottom">
+                <img src="${item.thumbnail}" style="width: 50px; height: 50px; object-fit: contain;" class="bg-light rounded">
+                <div class="flex-grow-1">
+                    <h6 class="mb-0 fw-bold small">${item.name}</h6>
+                    <span class="text-muted small">${quantity} x ৳ ${unitPrice.toLocaleString()}</span>
+                </div>
+                <div class="fw-bold">৳ ${itemTotal.toLocaleString()}</div>
+            </div>`;
+                });
+
+                let html = `
+        <div class="row mb-4">
+            <div class="col-6">
+                <p class="text-muted small mb-1">Customer Info:</p>
+                <h6 class="fw-bold mb-0">${order.name}</h6>
+                <p class="small mb-0 text-dark">${order.phone}</p>
+            </div>
+            <div class="col-6 text-end">
+                <p class="text-muted small mb-1">Shipping Address:</p>
+                <p class="small mb-0 fw-bold">${order.address}</p>
+            </div>
+        </div>
+        <div class="mb-3">
+            <h6 class="fw-bold border-bottom pb-2 mb-3">Ordered Items</h6>
+            ${itemsHtml}
+        </div>
+        <div class="p-3 bg-light rounded-4">
+            <div class="d-flex justify-content-between small mb-1"><span>Subtotal:</span><span class="fw-bold">৳ ${order.subtotal}</span></div>
+            <div class="d-flex justify-content-between small mb-1"><span>Delivery:</span><span class="fw-bold">৳ ${order.delivery_charge}</span></div>
+            <div class="d-flex justify-content-between fs-5 fw-bold text-primary border-top pt-2 mt-2"><span>Total Amount:</span><span>৳ ${order.total_amount}</span></div>
+        </div>`;
+
+                $('#order-details-content').html(html);
+            });
+        }
+
+        function deleteOrder(id) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post(`/order-delete/${id}`, {
+                        _token: "{{ csrf_token() }}",
+                        _method: 'DELETE'
+                    }, function(res) {
+                        $(`#order-row-${id}`).fadeOut();
+                        Toast.fire({
+                            icon: 'success',
+                            title: 'Order deleted successfully'
+                        });
+                    });
+                }
+            });
+        }
     </script>
 @endpush
