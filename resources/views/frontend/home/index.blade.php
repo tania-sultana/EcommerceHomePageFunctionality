@@ -329,7 +329,7 @@
                 new bootstrap.Offcanvas(document.getElementById('checkoutOffcanvas')).show();
             }, 400);
         }
-// ---------------------wishlist------------
+        // ---------------------wishlist------------
         function getWishlist() {
             return JSON.parse(localStorage.getItem('my_wishlist')) || [];
         }
@@ -368,12 +368,28 @@
             $('.wishlist-count-nav').text(ids.length);
             let container = $('#wishlist-items-container');
             if (ids.length === 0) return container.html('<div class="text-center py-5 text-muted">Wishlist empty!</div>');
+
             let html = '';
             allProductsData.filter(p => ids.includes(p.id)).forEach(product => {
-                html += `<div class="d-flex align-items-center gap-3 mb-3 p-3 border rounded-4 bg-white shadow-sm">
+                html += `
+                <div class="d-flex align-items-center gap-3 mb-3 p-3 border rounded-4 bg-white shadow-sm">
                     <img src="${product.thumbnail}" style="width: 50px; height: 50px; object-fit: contain;" class="bg-light rounded p-1">
-                    <div class="flex-grow-1"><h6 class="mb-0 fw-bold small">${product.name}</h6><span class="text-primary fw-bold small">৳ ${product.price}</span></div>
-                    <button class="btn btn-sm btn-light text-danger border rounded-circle" onclick="toggleWishlist(null, ${product.id})" style="width: 32px; height: 32px;"><i class="fa-solid fa-trash-can"></i></button>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0 fw-bold small">${product.name}</h6>
+                        <span class="text-primary fw-bold small">৳ ${product.price}</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-light text-primary border rounded-circle"
+                                onclick="showProductDetails(${product.id})"
+                                style="width: 32px; height: 32px;">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light text-danger border rounded-circle"
+                                onclick="toggleWishlist(null, ${product.id})"
+                                style="width: 32px; height: 32px;">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
                 </div>`;
             });
             container.html(html);
