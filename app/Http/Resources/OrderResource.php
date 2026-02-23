@@ -28,10 +28,11 @@ class OrderResource extends JsonResource
             'items' => $this->whenLoaded('items', function () {
                 return $this->items->map(function ($item) {
                     return [
-                        'name'  => $item->product->name ?? 'N/A',
-                        'qty'   => $item->qty,
-                        'price' => $item->price,
-                        'thumbnail' => $item->product->thumbnail ?? '',
+                        'product_name' => $item->product->name ?? 'N/A',
+                        'quantity'     => $item->quantity, // এখানে অবশ্যই 'quantity' দিন
+                        'price'        => $item->price,
+                        'thumbnail'    => $item->product->thumbnail ?? '',
+                        'line_total'   => $item->quantity * $item->price,
                     ];
                 });
             }),

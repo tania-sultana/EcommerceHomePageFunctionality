@@ -29,6 +29,15 @@
         </div>
     </div>
 
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="orderHistoryOffcanvas" style="width: 400px; border-radius: 20px 0 0 20px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title fw-bold"><i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>My Orders</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body p-3" id="order-list-container" style="background: #f8f9fa;">
+        </div>
+</div>
+
     {{-- ------------ Dynamic UI Containers ------------ --}}
     <div id="cart-ui-wrapper"></div>
     <div id="checkout-ui-wrapper"></div>
@@ -471,55 +480,129 @@
         // ==========================================
         // 5. CHECKOUT SECTION
         // ==========================================
+
         function renderCheckoutStructure() {
             let html = `
-            <div class="offcanvas offcanvas-end" tabindex="-1" id="checkoutOffcanvas" style="width: 400px;">
-                <div class="offcanvas-header border-bottom">
-                    <h5 class="offcanvas-title fw-bold">Checkout Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="checkoutOffcanvas" style="width: 400px; border-radius: 20px 0 0 20px;">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title fw-bold">Checkout Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="p-3 bg-light rounded-4 mb-4">
+                <h6 class="fw-bold border-bottom pb-2">Order Summary</h6>
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Subtotal:</span>
+                    <span class="fw-bold">৳ <span id="check-subtotal">0</span></span>
                 </div>
-                <div class="offcanvas-body">
-                    <div class="p-3 bg-light rounded-4 mb-4">
-                        <h6 class="fw-bold border-bottom pb-2">Order Summary</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Subtotal:</span><span>৳ <span id="check-subtotal">0</span></span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Delivery Charge:</span><span id="check-delivery">60</span></div>
-                        <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top text-primary"><span>Total:</span><span>৳ <span id="check-total">0</span></span></div>
-                    </div>
-                    <form id="checkout-form">
-                        <div class="mb-3"><label class="small fw-bold">Full Name</label><input type="text" name="name" class="form-control shadow-none" required></div>
-                        <div class="mb-3"><label class="small fw-bold">Phone Number</label><input type="text" name="phone" class="form-control shadow-none" required></div>
-                        <div class="mb-4"><label class="small fw-bold">Address</label><textarea name="address" class="form-control shadow-none" rows="3" required></textarea></div>
-                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">Confirm Order</button>
-                    </form>
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">Delivery Charge:</span>
+                    <span class="fw-bold">৳ <span id="check-delivery">60</span></span>
                 </div>
-            </div>`;
+                <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top text-primary fs-5">
+                    <span>Total:</span>
+                    <span>৳ <span id="check-total">0</span></span>
+                </div>
+            </div>
+            <form id="checkout-form">
+                <div class="mb-3">
+                    <label class="small fw-bold mb-1">Full Name</label>
+                    <input type="text" name="name" class="form-control shadow-none rounded-3" placeholder="Enter your name" required>
+                </div>
+                <div class="mb-3">
+                    <label class="small fw-bold mb-1">Phone Number</label>
+                    <input type="text" name="phone" class="form-control shadow-none rounded-3" placeholder="017xxxxxxxx" required>
+                </div>
+                <div class="mb-4">
+                    <label class="small fw-bold mb-1">Full Address</label>
+                    <textarea name="address" class="form-control shadow-none rounded-3" rows="3" placeholder="House, Road, Area..." required></textarea>
+                </div>
+                <button type="submit" id="confirm-order-btn" class="btn btn-primary w-100 rounded-pill py-3 fw-bold shadow-sm">
+                    Confirm Order
+                </button>
+            </form>
+        </div>
+    </div>`;
             $('#checkout-ui-wrapper').html(html);
         }
 
+
         function showCheckout() {
-            bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas')).hide();
-            let subtotal = parseInt($('#cart-subtotal').text());
+
+            let cartDrawer = bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas'));
+            if (cartDrawer) cartDrawer.hide();
+
+            let subtotal = parseInt($('#cart-subtotal').text()) || 0;
             let delivery = (subtotal >= 2000) ? 0 : 60;
+
             $('#check-subtotal').text(subtotal);
             $('#check-delivery').text(delivery);
             $('#check-total').text(subtotal + delivery);
+
             setTimeout(() => {
-                new bootstrap.Offcanvas(document.getElementById('checkoutOffcanvas')).show();
+                let checkoutOffcanvas = new bootstrap.Offcanvas(document.getElementById('checkoutOffcanvas'));
+                checkoutOffcanvas.show();
             }, 400);
         }
 
         $(document).on('submit', '#checkout-form', function(e) {
             e.preventDefault();
-            let data = $(this).serialize() + '&cart=' + JSON.stringify(getCart()) + '&_token={{ csrf_token() }}';
-            $.post("{{ route('checkout') }}", data, function(res) {
+
+            let submitBtn = $('#confirm-order-btn');
+            submitBtn.prop('disabled', true).html(
+                '<span class="spinner-border spinner-border-sm me-2"></span>Processing...');
+
+            let cart = getCart();
+            let orderItems = cart.map(item => {
+                let product = allProductsData.find(p => p.id === item.id);
+                return {
+                    id: item.id,
+                    quantity: item.qty,
+                    price: product ? product.price : 0
+                };
+            });
+
+            let formData = {
+                _token: "{{ csrf_token() }}",
+                name: $(this).find('input[name="name"]').val(),
+                phone: $(this).find('input[name="phone"]').val(),
+                address: $(this).find('textarea[name="address"]').val(),
+                subtotal: parseFloat($('#check-subtotal').text()),
+                delivery_charge: parseFloat($('#check-delivery').text()),
+                total_amount: parseFloat($('#check-total').text()),
+                items: orderItems
+            };
+
+            $.post("{{ route('checkout') }}", formData, function(res) {
+
                 Toast.fire({
                     icon: 'success',
                     title: 'Order Successful!'
                 });
+
+                $('#checkout-form')[0].reset();
+
                 localStorage.removeItem('my_cart');
-                renderProductGrid();
+
+                $('.cart-count-nav').text(0);
+                $('#cart-count-title').text('(0)');
+
+                if (typeof renderProductGrid === "function") {
+                    renderProductGrid();
+                }
+
                 updateCartUI();
+
                 bootstrap.Offcanvas.getInstance(document.getElementById('checkoutOffcanvas')).hide();
+
+                fetchOrderHistory();
+
+                submitBtn.prop('disabled', false).text('Confirm Order');
+
+            }).fail(function(xhr) {
+                submitBtn.prop('disabled', false).text('Confirm Order');
+                let errorMsg = xhr.responseJSON ? xhr.responseJSON.message : 'Something went wrong!';
+                Swal.fire('Error', errorMsg, 'error');
             });
         });
 

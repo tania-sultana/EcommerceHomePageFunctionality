@@ -21,15 +21,17 @@ class OrderRepository extends Repository
     public static function storeByRequest(Request $request, array $cart): Order
     {
 
-        $total = array_sum(array_map(fn ($item) => $item['price'] * $item['quantity'], $cart));
+        $total = array_sum(array_map(fn($item) => $item['price'] * $item['quantity'], $cart));
 
         $order = self::create([
-            'invoice_no' => 'INV-'.strtoupper(uniqid()),
-            'name' => $request->name,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'total_amount' => $total,
-            'status' => 'pending',
+            'invoice_no'      => 'INV-' . strtoupper(uniqid()),
+            'name'            => $request->name,
+            'phone'           => $request->phone,
+            'address'         => $request->address,
+            'subtotal'        => $request->subtotal,
+            'delivery_charge' => $request->delivery_charge,
+            'total_amount'    => $request->total_amount,
+            'status'          => 'pending',
         ]);
 
         foreach ($cart as $id => $item) {
