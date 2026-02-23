@@ -29,6 +29,16 @@
         </div>
     </div>
 
+    {{-- ------------ Cart Offcanvas Section ------------ --}}
+    <div class="modal fade" id="cartItemQuickViewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content rounded-5 border-0 shadow-lg">
+                <div class="modal-body p-0" id="cart-quickview-content">
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Dynamic UI Containers --}}
     <div id="cart-ui-wrapper"></div>
     <div id="checkout-ui-wrapper"></div>
@@ -50,58 +60,9 @@
             });
         });
 
-        function renderCartStructure() {
-            let html = `
-            <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" style="width: 400px;">
-                <div class="offcanvas-header border-bottom">
-                    <h5 class="offcanvas-title fw-bold">Shopping Cart</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-                </div>
-                <div class="offcanvas-body d-flex flex-column" id="cart-items-container" style="background: #f8f9fa;"></div>
-                <div class="offcanvas-footer p-3 border-top bg-white" id="cart-footer" style="display:none;">
-                    <div class="d-flex justify-content-between mb-1 small text-muted">
-                        <span>Subtotal:</span>
-                        <span>৳ <span id="cart-subtotal">0</span></span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-1 small text-muted">
-                        <span>Delivery Charge:</span>
-                        <span>৳ <span id="cart-delivery-charge">60</span></span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3 fw-bold border-top pt-2">
-                        <span>Total:</span>
-                        <span class="text-primary">৳ <span id="cart-total-display">0</span></span>
-                    </div>
-                    <button class="btn btn-primary w-100 rounded-pill fw-bold py-2" onclick="showCheckout()">Proceed to Checkout</button>
-                </div>
-            </div>`;
-            $('#cart-ui-wrapper').html(html);
-        }
-
-        function renderCheckoutStructure() {
-            let html = `
-            <div class="offcanvas offcanvas-end" tabindex="-1" id="checkoutOffcanvas" style="width: 400px;">
-                <div class="offcanvas-header border-bottom">
-                    <h5 class="offcanvas-title fw-bold">Checkout Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-                </div>
-                <div class="offcanvas-body">
-                    <div class="p-3 bg-light rounded-4 mb-4">
-                        <h6 class="fw-bold border-bottom pb-2">Order Summary</h6>
-                        <div class="d-flex justify-content-between small mb-1"><span>Subtotal:</span><span>৳ <span id="check-subtotal">0</span></span></div>
-                        <div class="d-flex justify-content-between small mb-1"><span>Delivery Charge:</span><span id="check-delivery">60</span></div>
-                        <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top text-primary"><span>Total:</span><span>৳ <span id="check-total">0</span></span></div>
-                    </div>
-                    <form id="checkout-form">
-                        <div class="mb-3"><label class="small fw-bold">Full Name</label><input type="text" name="name" class="form-control shadow-none" required></div>
-                        <div class="mb-3"><label class="small fw-bold">Phone Number</label><input type="text" name="phone" class="form-control shadow-none" required></div>
-                        <div class="mb-4"><label class="small fw-bold">Address</label><textarea name="address" class="form-control shadow-none" rows="3" required></textarea></div>
-                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">Confirm Order</button>
-                    </form>
-                </div>
-            </div>`;
-            $('#checkout-ui-wrapper').html(html);
-        }
-
+        // ==========================================
+        // 1. HOME PAGE & PRODUCT GRID SECTION
+        // ==========================================
         function loadHomeProducts() {
             $.ajax({
                 url: "{{ route('index') }}",
@@ -151,7 +112,7 @@
                             <p class="text-muted mb-3 flex-grow-1">${displayDescription} ${seeMoreLink}</p>
                             <div class="mt-auto d-flex justify-content-between align-items-center border-top pt-3">
                                 <span class="text-primary fw-bolder fs-5">৳ ${product.price}</span>
-                                <button class="btn ${cartBtnClass} btn-sm rounded-pill px-3 py-1 shadow-sm fw-bold" onclick="event.stopPropagation(); addToCart(${product.id})">
+                                <button class="btn ${cartBtnClass} btn-sm rounded-pill px-3 py-1 shadow-sm fw-bold add-btn" onclick="event.stopPropagation(); addToCart(${product.id})">
                                     ${cartBtnText}
                                 </button>
                             </div>
@@ -162,93 +123,9 @@
             $('#product-grid-container').html(html);
         }
 
-        /**
-         * SECTION: CART LOGIC
-         */
-        function getCart() {
-            return JSON.parse(localStorage.getItem('my_cart')) || [];
-        }
-
-        function addToCart(productId, qty = 1) {
-            let cart = getCart();
-            let existingItem = cart.find(item => item.id === productId);
-            if (!existingItem) {
-                cart.push({
-                    id: productId,
-                    qty: parseInt(qty)
-                });
-                localStorage.setItem('my_cart', JSON.stringify(cart));
-                renderProductGrid();
-                updateCartUI();
-            }
-        }
-
-        function updateQty(id, delta) {
-            let cart = getCart();
-            let item = cart.find(i => i.id === id);
-            if (item) {
-                item.qty += delta;
-                if (item.qty < 1) item.qty = 1; // Minimum value 1
-                localStorage.setItem('my_cart', JSON.stringify(cart));
-                updateCartUI();
-            }
-        }
-
-        function removeFromCart(id) {
-            let cart = getCart().filter(i => i.id !== id);
-            localStorage.setItem('my_cart', JSON.stringify(cart));
-            updateCartUI();
-            renderProductGrid();
-        }
-
-        function updateCartUI() {
-            let cart = getCart();
-            $('.cart-count-nav').text(cart.length);
-            let container = $('#cart-items-container');
-            let subtotal = 0;
-            let delivery = 60;
-
-            if (cart.length === 0) {
-                container.html('<div class="text-center py-5 text-muted">Your cart is empty!</div>');
-                $('#cart-footer').hide();
-                return;
-            }
-
-            let html = '';
-            cart.forEach(item => {
-                let p = allProductsData.find(x => x.id === item.id);
-                if (p) {
-                    let totalItemPrice = p.price * item.qty; // Price level updates with quantity
-                    subtotal += totalItemPrice;
-                    html += `
-                    <div class="d-flex align-items-center gap-3 mb-3 p-2 bg-white border rounded-4 shadow-sm">
-                        <img src="${p.thumbnail}" style="width: 60px; height: 60px; object-fit: contain;" class="bg-light p-1 rounded">
-                        <div class="flex-grow-1">
-                            <h6 class="mb-0 fw-bold small">${p.name}</h6>
-                            <span class="text-primary fw-bold small">৳ ${totalItemPrice}</span>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <div class="d-flex align-items-center border rounded-pill bg-light">
-                                <button class="btn btn-sm border-0 px-2" onclick="updateQty(${p.id}, -1)">-</button>
-                                <span class="px-1 fw-bold small" style="min-width:20px; text-align:center">${item.qty}</span>
-                                <button class="btn btn-sm border-0 px-2" onclick="updateQty(${p.id}, 1)">+</button>
-                            </div>
-                            <button class="btn btn-sm text-danger p-1" onclick="removeFromCart(${p.id})"><i class="fa-solid fa-trash-can"></i></button>
-                        </div>
-                    </div>`;
-                }
-            });
-
-            container.html(html);
-            $('#cart-subtotal').text(subtotal);
-            $('#cart-delivery-charge').text(delivery);
-            $('#cart-total-display').text(subtotal + delivery);
-            $('#cart-footer').show();
-        }
-
-        /**
-         * SECTION: DETAILS MODAL (WITH QUANTITY LOGIC)
-         */
+        // ==========================================
+        // 2. PRODUCT DETAILS SECTION
+        // ==========================================
         function showProductDetails(id) {
             $('.offcanvas').each(function() {
                 let inst = bootstrap.Offcanvas.getInstance(this);
@@ -300,7 +177,6 @@
             });
         }
 
-        // Modal Specific Qty Handler
         function updateModalQty(delta, unitPrice) {
             let qtyInput = $('#modal-qty');
             let newQty = parseInt(qtyInput.val()) + delta;
@@ -315,21 +191,9 @@
             $('#productDetailsModal').modal('hide');
         }
 
-        /**
-         * OTHER UTILS
-         */
-        function showCheckout() {
-            bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas')).hide();
-            let subtotal = parseInt($('#cart-subtotal').text());
-            let delivery = 60;
-            $('#check-subtotal').text(subtotal);
-            $('#check-delivery').text(delivery);
-            $('#check-total').text(subtotal + delivery);
-            setTimeout(() => {
-                new bootstrap.Offcanvas(document.getElementById('checkoutOffcanvas')).show();
-            }, 400);
-        }
-        // ---------------------wishlist------------
+        // ==========================================
+        // 3. WISHLIST SECTION
+        // ==========================================
         function getWishlist() {
             return JSON.parse(localStorage.getItem('my_wishlist')) || [];
         }
@@ -345,7 +209,6 @@
             localStorage.setItem('my_wishlist', JSON.stringify(wishlist));
 
             renderProductGrid();
-
             updateWishlistUI();
 
             let modalHeart = $('#productDetailsModal').find('i.fa-heart');
@@ -393,6 +256,246 @@
                 </div>`;
             });
             container.html(html);
+        }
+
+        // ==========================================
+        // 4. CART SECTION
+        // ==========================================
+        function renderCartStructure() {
+            let html = `
+            <div class="offcanvas offcanvas-end" tabindex="-1" id="cartOffcanvas" style="width: 400px; border-radius: 20px 0 0 20px;">
+                <div class="offcanvas-header border-bottom">
+                    <h5 class="offcanvas-title fw-bold">Shopping Cart <span id="cart-count-title" class="text-muted small"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                </div>
+                <div class="offcanvas-body d-flex flex-column p-0">
+                    <div id="free-delivery-banner" class="p-2 text-center small fw-bold" style="background: #e7f1ff; color: #0d6efd; display:none;"></div>
+                    <div class="flex-grow-1 p-3" id="cart-items-container" style="background: #ffffff;"></div>
+                </div>
+                <div class="offcanvas-footer p-4 border-top bg-white" id="cart-footer" style="display:none;">
+                    <div class="d-flex justify-content-between mb-2 text-muted">
+                        <span>Subtotal</span>
+                        <span class="fw-bold">৳ <span id="cart-subtotal">0</span></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 text-muted">
+                        <span>Delivery Charge</span>
+                        <span class="fw-bold" id="delivery-status">৳ 60</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-4 align-items-center">
+                        <h4 class="fw-bold mb-0">Total</h4>
+                        <h4 class="fw-bold text-primary mb-0">৳ <span id="cart-total-display">0</span></h4>
+                    </div>
+                    <button class="btn btn-primary w-100 rounded-pill fw-bold py-3 fs-5 shadow-sm" onclick="showCheckout()">
+                        Proceed to Checkout <i class="fa-solid fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal fade" id="cartItemQuickViewModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content rounded-5 border-0 shadow-lg">
+                        <div class="modal-body p-0" id="cart-quickview-content">
+                            </div>
+                    </div>
+                </div>
+            </div>`;
+            $('#cart-ui-wrapper').html(html);
+        }
+
+        function getCart() {
+            return JSON.parse(localStorage.getItem('my_cart')) || [];
+        }
+
+        function addToCart(productId, qty = 1) {
+            let cart = getCart();
+            let existingItem = cart.find(item => item.id === productId);
+            if (!existingItem) {
+                cart.push({
+                    id: productId,
+                    qty: parseInt(qty)
+                });
+                localStorage.setItem('my_cart', JSON.stringify(cart));
+                renderProductGrid();
+                updateCartUI();
+            }
+        }
+
+        function updateQty(id, delta) {
+            let cart = getCart();
+            let item = cart.find(i => i.id === id);
+            if (item) {
+                item.qty += delta;
+                if (item.qty < 1) item.qty = 1;
+                localStorage.setItem('my_cart', JSON.stringify(cart));
+                updateCartUI();
+            }
+        }
+
+        function removeFromCart(id) {
+            let cart = getCart().filter(i => i.id !== id);
+            localStorage.setItem('my_cart', JSON.stringify(cart));
+            updateCartUI();
+            renderProductGrid();
+        }
+
+        function updateCartUI() {
+            let cart = getCart();
+            $('.cart-count-nav').text(cart.length);
+            $('#cart-count-title').text('(' + cart.length + ')');
+            let container = $('#cart-items-container');
+            let subtotal = 0;
+            let delivery = 60;
+            let freeDeliveryThreshold = 2000;
+
+            if (cart.length === 0) {
+                container.html(
+                    '<div class="text-center py-5 text-muted"><i class="fa-solid fa-cart-shopping mb-3 fs-1 opacity-25"></i><br>Your cart is empty!</div>'
+                );
+                $('#cart-footer').hide();
+                $('#free-delivery-banner').hide();
+                return;
+            }
+
+            let html = '';
+            cart.forEach(item => {
+                let p = allProductsData.find(x => x.id === item.id);
+                if (p) {
+                    let totalItemPrice = p.price * item.qty;
+                    subtotal += totalItemPrice;
+                    html += `
+                    <div class="p-3 mb-3 bg-white border rounded-4 shadow-sm position-relative">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="${p.thumbnail}" style="width: 70px; height: 70px; object-fit: contain;" class="bg-light p-1 rounded">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 fw-bold">${p.name}</h6>
+                                <span class="text-primary fw-bold">৳ ${p.price}</span>
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <div class="d-flex align-items-center border rounded-pill bg-light">
+                                        <button class="btn btn-sm border-0 px-2" onclick="updateQty(${p.id}, -1)">-</button>
+                                        <span class="px-2 fw-bold small" style="min-width:30px; text-align:center">${item.qty}</span>
+                                        <button class="btn btn-sm border-0 px-2" onclick="updateQty(${p.id}, 1)">+</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <div class="d-flex gap-1 mb-3 justify-content-end">
+                                    <button class="btn btn-sm btn-light text-primary border rounded-circle" onclick="viewCartItemQuickly(${p.id})" style="width:32px; height:32px;"><i class="fa-solid fa-eye" ></i></button>
+
+                                    <button class="btn btn-sm btn-light text-danger border rounded-circle " onclick="removeFromCart(${p.id})" style="width:32px; height:32px;"><i class="fa-solid fa-trash-can"></i></button>
+
+                                </div>
+                                <h6 class="fw-bold mb-0">৳ ${totalItemPrice}</h6>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            if (subtotal >= freeDeliveryThreshold) {
+                delivery = 0;
+                $('#free-delivery-banner').html(
+                        '<i class="fa-solid fa-circle-check me-2"></i> Congratulations! You have <b>Free Delivery</b>.')
+                    .css({
+                        'background': '#d1e7dd',
+                        'color': '#0f5132'
+                    }).show();
+                $('#delivery-status').html('৳ 60 <span class="text-success ms-1">FREE</span>');
+            } else {
+                let amountLeft = freeDeliveryThreshold - subtotal;
+                $('#free-delivery-banner').html(
+                        `<i class="fa-solid fa-truck me-2"></i> Add <b>৳ ${amountLeft}</b> more for <b>Free Delivery</b>.`)
+                    .css({
+                        'background': '#e7f1ff',
+                        'color': '#0d6efd'
+                    }).show();
+                $('#delivery-status').text('৳ 60');
+            }
+
+            container.html(html);
+            $('#cart-subtotal').text(subtotal);
+            $('#cart-total-display').text(subtotal + delivery);
+            $('#cart-footer').show();
+        }
+
+        function viewCartItemQuickly(id) {
+            let cart = getCart();
+            let item = cart.find(i => i.id === id);
+            let p = allProductsData.find(x => x.id === id);
+
+            if (p && item) {
+                let totalItemPrice = p.price * item.qty;
+                let html = `
+            <div class="row g-0 p-4 position-relative">
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-3 shadow-none border rounded-circle p-2" data-bs-dismiss="modal" style="z-index: 10; font-size: 12px;"></button>
+
+                <div class="col-md-5 d-flex align-items-center justify-content-center p-3">
+                    <img src="${p.thumbnail}" class="img-fluid rounded-4 shadow-sm" style="max-height: 280px; object-fit: contain;">
+                </div>
+
+                <div class="col-md-7 p-4">
+                    <h2 class="fw-bold text-dark mb-1">${p.name}</h2>
+                    <h3 class="text-primary fw-bold mb-4">৳ ${p.price}</h3>
+
+                    <div class="p-3 bg-light rounded-4 border mb-4" style="background: #f8f9fa !important;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted fw-bold">Quantity:</span>
+                            <span class="fs-5 fw-bolder text-dark">${item.qty}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                            <span class="fw-bold text-dark">Subtotal:</span>
+                            <span class="fs-4 fw-bolder text-success">৳ ${totalItemPrice}</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-success w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm disabled" style="background-color: #67b295; border:none; opacity: 1;">
+                        <i class="fa-solid fa-circle-check me-2"></i> Already In Cart
+                    </button>
+                </div>
+            </div>`;
+
+                $('#cart-quickview-content').html(html);
+                $('#cartItemQuickViewModal').modal('show');
+            }
+        }
+
+        // ==========================================
+        // 5. CHECKOUT SECTION
+        // ==========================================
+        function renderCheckoutStructure() {
+            let html = `
+            <div class="offcanvas offcanvas-end" tabindex="-1" id="checkoutOffcanvas" style="width: 400px;">
+                <div class="offcanvas-header border-bottom">
+                    <h5 class="offcanvas-title fw-bold">Checkout Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                </div>
+                <div class="offcanvas-body">
+                    <div class="p-3 bg-light rounded-4 mb-4">
+                        <h6 class="fw-bold border-bottom pb-2">Order Summary</h6>
+                        <div class="d-flex justify-content-between small mb-1"><span>Subtotal:</span><span>৳ <span id="check-subtotal">0</span></span></div>
+                        <div class="d-flex justify-content-between small mb-1"><span>Delivery Charge:</span><span id="check-delivery">60</span></div>
+                        <div class="d-flex justify-content-between fw-bold mt-2 pt-2 border-top text-primary"><span>Total:</span><span>৳ <span id="check-total">0</span></span></div>
+                    </div>
+                    <form id="checkout-form">
+                        <div class="mb-3"><label class="small fw-bold">Full Name</label><input type="text" name="name" class="form-control shadow-none" required></div>
+                        <div class="mb-3"><label class="small fw-bold">Phone Number</label><input type="text" name="phone" class="form-control shadow-none" required></div>
+                        <div class="mb-4"><label class="small fw-bold">Address</label><textarea name="address" class="form-control shadow-none" rows="3" required></textarea></div>
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold">Confirm Order</button>
+                    </form>
+                </div>
+            </div>`;
+            $('#checkout-ui-wrapper').html(html);
+        }
+
+        function showCheckout() {
+            bootstrap.Offcanvas.getInstance(document.getElementById('cartOffcanvas')).hide();
+            let subtotal = parseInt($('#cart-subtotal').text());
+            let delivery = (subtotal >= 2000) ? 0 : 60;
+            $('#check-subtotal').text(subtotal);
+            $('#check-delivery').text(delivery);
+            $('#check-total').text(subtotal + delivery);
+            setTimeout(() => {
+                new bootstrap.Offcanvas(document.getElementById('checkoutOffcanvas')).show();
+            }, 400);
         }
 
         $(document).on('submit', '#checkout-form', function(e) {
