@@ -125,8 +125,17 @@
             allProductsData.forEach(function(product) {
                 let isWish = wishlist.includes(product.id);
                 let inCart = cart.some(item => item.id === product.id);
-                let cartBtnText = inCart ? '<i class="fa-solid fa-check me-1"></i> In Cart' : '<i class="fa-solid fa-plus me-1"></i> Add to cart';
+                let cartBtnText = inCart ? '<i class="fa-solid fa-check me-1"></i> In Cart' :
+                    '<i class="fa-solid fa-plus me-1"></i> Add to cart';
                 let cartBtnClass = inCart ? 'btn-success disabled' : 'btn-soft-primary text-primary';
+
+                let displayDescription = product.short_description.length > 40 ?
+                    product.short_description.substring(0, 40) + '...' :
+                    product.short_description;
+
+                let seeMoreLink = product.short_description.length > 40 ?
+                    `<a href="#" class="text-primary text-decoration-none fw-bold" style="font-size: 13px;">see more</a>` :
+                    '';
 
                 html += `
                 <div class="col-6 col-md-4 mb-4">
@@ -139,7 +148,7 @@
                         </div>
                         <div class="card-body d-flex flex-column p-3">
                             <h5 class="fw-bold mb-1 text-dark">${product.name}</h5>
-                            <p class="text-muted mb-3 flex-grow-1 small">${product.short_description.substring(0, 40)}...</p>
+                            <p class="text-muted mb-3 flex-grow-1">${displayDescription} ${seeMoreLink}</p>
                             <div class="mt-auto d-flex justify-content-between align-items-center border-top pt-3">
                                 <span class="text-primary fw-bolder fs-5">৳ ${product.price}</span>
                                 <button class="btn ${cartBtnClass} btn-sm rounded-pill px-3 py-1 shadow-sm fw-bold" onclick="event.stopPropagation(); addToCart(${product.id})">
@@ -156,13 +165,18 @@
         /**
          * SECTION: CART LOGIC
          */
-        function getCart() { return JSON.parse(localStorage.getItem('my_cart')) || []; }
+        function getCart() {
+            return JSON.parse(localStorage.getItem('my_cart')) || [];
+        }
 
         function addToCart(productId, qty = 1) {
             let cart = getCart();
             let existingItem = cart.find(item => item.id === productId);
             if (!existingItem) {
-                cart.push({ id: productId, qty: parseInt(qty) });
+                cart.push({
+                    id: productId,
+                    qty: parseInt(qty)
+                });
                 localStorage.setItem('my_cart', JSON.stringify(cart));
                 renderProductGrid();
                 updateCartUI();
@@ -236,7 +250,10 @@
          * SECTION: DETAILS MODAL (WITH QUANTITY LOGIC)
          */
         function showProductDetails(id) {
-            $('.offcanvas').each(function() { let inst = bootstrap.Offcanvas.getInstance(this); if(inst) inst.hide(); });
+            $('.offcanvas').each(function() {
+                let inst = bootstrap.Offcanvas.getInstance(this);
+                if (inst) inst.hide();
+            });
             $('#productDetailsModal').modal('show');
 
             $.get("/product/" + id, function(res) {
@@ -308,19 +325,42 @@
             $('#check-subtotal').text(subtotal);
             $('#check-delivery').text(delivery);
             $('#check-total').text(subtotal + delivery);
-            setTimeout(() => { new bootstrap.Offcanvas(document.getElementById('checkoutOffcanvas')).show(); }, 400);
+            setTimeout(() => {
+                new bootstrap.Offcanvas(document.getElementById('checkoutOffcanvas')).show();
+            }, 400);
+        }
+// ---------------------wishlist------------
+        function getWishlist() {
+            return JSON.parse(localStorage.getItem('my_wishlist')) || [];
         }
 
-        function getWishlist() { return JSON.parse(localStorage.getItem('my_wishlist')) || []; }
         function toggleWishlist(btn, productId) {
             let wishlist = getWishlist();
             let index = wishlist.indexOf(productId);
             let action = (index === -1) ? 'add' : 'remove';
-            if (action === 'add') wishlist.push(productId); else wishlist.splice(index, 1);
+
+            if (action === 'add') wishlist.push(productId);
+            else wishlist.splice(index, 1);
+
             localStorage.setItem('my_wishlist', JSON.stringify(wishlist));
+
             renderProductGrid();
+
             updateWishlistUI();
-            $.post(`/product-toggle/${productId}`, { _token: "{{ csrf_token() }}", action: action });
+
+            let modalHeart = $('#productDetailsModal').find('i.fa-heart');
+            if (modalHeart.length) {
+                if (action === 'add') {
+                    modalHeart.removeClass('fa-regular').addClass('fa-solid');
+                } else {
+                    modalHeart.removeClass('fa-solid').addClass('fa-regular');
+                }
+            }
+
+            $.post(`/product-toggle/${productId}`, {
+                _token: "{{ csrf_token() }}",
+                action: action
+            });
         }
 
         function updateWishlistUI() {
