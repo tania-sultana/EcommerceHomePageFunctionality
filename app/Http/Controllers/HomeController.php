@@ -9,8 +9,11 @@ use App\Http\Requests\OrderStoreRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Wishlist;
+use App\Repositories\OrderRepository;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
 
 
 class HomeController extends Controller
@@ -58,48 +61,13 @@ class HomeController extends Controller
 
     public function checkout(OrderStoreRequest $request)
     {
-        DB::beginTransaction();
-
-        try {
-
-            // Generate invoice number
-            $invoiceNo = 'INV-' . strtoupper(uniqid());
-
-            $order = Order::create([
-                'invoice_no' => $invoiceNo,
-                'name' => $request->name,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'subtotal' => $request->subtotal,
-                'delivery_charge' => $request->delivery_charge,
-                'total_amount' => $request->total_amount,
-                'status' => 'pending',
-            ]);
-
-            foreach ($request->items as $item) {
-                $order->items()->create([
-                    'product_id' => $item['id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                    'total' => $item['quantity'] * $item['price'],
-                ]);
-            }
-
-            DB::commit();
+            $order = OrderRepository::storeOrder($request);
 
             return response()->json([
-                'message' => 'Order placed successfully!',
+                'message'  => 'Order placed successfully!',
                 'order_id' => $order->id
             ], 200);
 
-        } catch (\Exception $e) {
-
-            DB::rollBack();
-
-            return response()->json([
-                'message' => $e->getMessage()
-            ], 500);
-        }
     }
 
     public function orderList()
